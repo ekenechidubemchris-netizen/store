@@ -104,6 +104,7 @@ async function initWorkerDashboard() {
     if (KC.products && KC.products.length) {
       clearInterval(waitForProducts);
       showDashSection('overview', session);
+      updateWorkerNotifBadge(session);
     }
   }, 50);
 }
@@ -1030,12 +1031,10 @@ function renderSentMessages() {
 }
 
 /* ---------- Notifications ---------- */
-function renderNotifications() {
-  const notifications = JSON.parse(localStorage.getItem('kc_notifications') || '[]');
-  const orders = JSON.parse(localStorage.getItem('kc_orders') || '[]');
-  const generated = orders.slice(-5).reverse().map(o => ({ text: `New order ${o.id} received — $${o.total.toFixed(2)}`, time: o.date, icon: 'bi-bag-check', color: '#2563EB' }));
-  const products = (KC.products || []).filter(p => p.stock < 15).slice(0, 3).map(p => ({ text: `Low stock: ${p.name} (${p.stock} left)`, time: new Date().toISOString(), icon: 'bi-exclamation-triangle', color: '#F59E0B' }));
-  const all = [...generated, ...products, ...notifications];
+function renderNotifications(session) {
+  const all = getAllWorkerNotifications();
+  markNotificationsRead(session);
+  updateWorkerNotifBadge(session);
   return `
     <h1 class="dash-section-title">Notification Center</h1>
     <div class="dash-card">
@@ -1046,6 +1045,31 @@ function renderNotifications() {
         </div>`).join('') : '<p class="rbac-note">No notifications yet.</p>'}
     </div>
   `;
+}
+function getAllWorkerNotifications() {
+  const stored = JSON.parse(localStorage.getItem('kc_notifications') || '[]');
+  const orders = JSON.parse(localStorage.getItem('kc_orders') || '[]');
+  const generated = orders.slice(-5).reverse().map(o => ({ id: `order-${o.id}`, text: `New order ${o.id} received — $${o.total.toFixed(2)}`, time: o.date, icon: 'bi-bag-check', color: '#2563EB' }));
+  const products = (KC.products || []).filter(p => p.stock < 15).slice(0, 3).map(p => ({ id: `stock-${p.id}`, text: `Low stock: ${p.name} (${p.stock} left)`, time: new Date().toISOString(), icon: 'bi-exclamation-triangle', color: '#F59E0B' }));
+  return [...generated, ...products, ...stored.map(n => ({ ...n, id: n.id || `stored-${n.text}` }))];
+}
+function markNotificationsRead(session) {
+  if (!session) return;
+  const all = getAllWorkerNotifications();
+  const key = `kc_worker_notif_read_${session.employeeId}`;
+  const readIds = JSON.parse(localStorage.getItem(key) || '[]');
+  all.forEach(n => { if (!readIds.includes(n.id)) readIds.push(n.id); });
+  localStorage.setItem(key, JSON.stringify(readIds));
+}
+function updateWorkerNotifBadge(session) {
+  const badge = document.getElementById('workerNotifBadge');
+  if (!badge || !session) return;
+  const all = getAllWorkerNotifications();
+  const key = `kc_worker_notif_read_${session.employeeId}`;
+  const readIds = JSON.parse(localStorage.getItem(key) || '[]');
+  const unread = all.filter(n => !readIds.includes(n.id)).length;
+  badge.textContent = unread;
+  badge.classList.toggle('d-none', unread === 0);
 }
 
 /* ---------- Settings ---------- */
