@@ -117,7 +117,9 @@ function handleRegister(e) {
   saveUsers(users);
   setSession(newUser);
   showToastSafe('Account created! Welcome to KeneCart.', 'success');
-  setTimeout(() => navigateTo('home'), 700);
+  const redirectTo = sessionStorage.getItem('kc_redirect_after_login');
+  sessionStorage.removeItem('kc_redirect_after_login');
+  setTimeout(() => navigateTo(redirectTo || 'home'), 700);
 }
 
 /* ---------- Login ---------- */
@@ -136,7 +138,9 @@ function handleLogin(e) {
   }
   setSession(user);
   showToastSafe(`Welcome back, ${user.name.split(' ')[0]}!`, 'success');
-  setTimeout(() => navigateTo('home'), 500);
+  const redirectTo = sessionStorage.getItem('kc_redirect_after_login');
+  sessionStorage.removeItem('kc_redirect_after_login');
+  setTimeout(() => navigateTo(redirectTo || 'home'), 500);
 }
 
 /* ---------- Forgot password (demo: sets a temp password) ---------- */
