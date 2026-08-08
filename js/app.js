@@ -38,8 +38,19 @@ function navigateTo(page, params = {}) {
   const showChrome = CUSTOMER_CHROME_PAGES.includes(page);
   const header = document.getElementById('globalHeader');
   const footer = document.getElementById('globalFooter');
+  const preFooter = document.getElementById('globalPreFooter');
+  const bottomNav = document.getElementById('kcBottomNav');
   if (header) header.style.display = showChrome ? '' : 'none';
   if (footer) footer.style.display = showChrome ? '' : 'none';
+  if (preFooter) preFooter.style.display = showChrome ? '' : 'none';
+  if (bottomNav) {
+    bottomNav.style.display = showChrome ? 'flex' : 'none';
+    document.body.classList.toggle('has-bottom-nav', showChrome);
+    bottomNav.querySelectorAll('.kc-bnav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === page || (el.dataset.page === 'products' && page === 'product-details'));
+    });
+    updateBottomNavBadges();
+  }
 
   const hash = '#' + page + (params && Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : '');
   try {
@@ -136,8 +147,8 @@ async function loadProducts() {
 function renderSidebarProducts() {
   const container = document.getElementById('sidebarProducts');
   if (!container) return;
-  const items = KC.products.filter(p => p.section === 'sidebar');
-  container.innerHTML = items.map(p => productCardHTML(p)).join('');
+  const items = KC.products.filter(p => p.section === 'sidebar').slice(0, 6);
+  container.innerHTML = items.map(p => productCardCompactHTML(p)).join('');
 }
 
 /* ---------- Home page: Flash deals ---------- */
@@ -147,17 +158,25 @@ function renderFlashDeals() {
   const items = KC.products.filter(p => p.section === 'flash');
   container.innerHTML = items.map(p => productCardHTML(p, true)).join('');
 }
+let KC_FLASH_TIMER_IDS = [];
 function startFlashTimers() {
+  // Clear any timers from a previous visit to this page — without this, navigating
+  // to Home/Products repeatedly stacks up duplicate intervals forever, which is
+  // exactly the kind of thing that causes a site to slowly lag over a session.
+  KC_FLASH_TIMER_IDS.forEach(id => clearInterval(id));
+  KC_FLASH_TIMER_IDS = [];
+
   document.querySelectorAll('.flash-timer').forEach(el => {
     let seconds = parseInt(el.dataset.seconds, 10);
     if (isNaN(seconds)) return;
-    setInterval(() => {
+    const id = setInterval(() => {
       seconds = Math.max(0, seconds - 1);
       const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
       const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
       el.textContent = `${h}:${m}`;
       el.dataset.seconds = seconds;
     }, 60000);
+    KC_FLASH_TIMER_IDS.push(id);
   });
 }
 
@@ -201,6 +220,25 @@ function productCardHTML(p, isFlash = false) {
     </div>
   </div>`;
 }
+function productCardCompactHTML(p) {
+  const inWishlist = KC.wishlist.includes(p.id);
+  const stars = renderStars(p.rating);
+  return `
+  <div class="kc-product-card kc-product-card-compact" data-id="${p.id}">
+    ${p.discount ? `<span class="badge-discount">-${p.discount}%</span>` : ''}
+    <button class="wishlist-btn ${inWishlist ? 'active' : ''}" onclick="toggleWishlist('${p.id}', this)" aria-label="Toggle wishlist">
+      <i class="bi ${inWishlist ? 'bi-heart-fill' : 'bi-heart'}"></i>
+    </button>
+    <div class="img-wrap" onclick="viewProduct('${p.id}')" role="button">
+      <img src="${p.image}" alt="${p.name}" loading="lazy">
+    </div>
+    <div class="name" onclick="viewProduct('${p.id}')" role="button">${p.name}</div>
+    <div class="kc-stars">${stars} <span class="text-muted" style="font-size:.7rem">(${p.reviews})</span></div>
+    <div class="price-row">
+      <span class="price">$${p.price.toFixed(2)}</span>
+    </div>
+  </div>`;
+}
 function renderStars(rating) {
   const full = Math.round(rating);
   let out = '';
@@ -222,6 +260,20 @@ function addToCart(id) {
 function updateCartBadge() {
   const count = KC.cart.reduce((sum, i) => sum + i.qty, 0);
   document.querySelectorAll('#cartCount').forEach(b => b.textContent = count);
+  updateBottomNavBadges();
+}
+function updateBottomNavBadges() {
+  const cartEl = document.getElementById('bnavCartBadge');
+  const wishEl = document.getElementById('bnavWishlistBadge');
+  if (cartEl) {
+    const count = KC.cart.reduce((sum, i) => sum + i.qty, 0);
+    cartEl.textContent = count;
+    cartEl.setAttribute('data-zero', count === 0);
+  }
+  if (wishEl) {
+    wishEl.textContent = KC.wishlist.length;
+    wishEl.setAttribute('data-zero', KC.wishlist.length === 0);
+  }
 }
 
 /* ===================================================
@@ -246,6 +298,7 @@ function toggleWishlist(id, btnEl) {
 }
 function updateWishlistBadge() {
   document.querySelectorAll('#wishlistCount').forEach(b => b.textContent = KC.wishlist.length);
+  updateBottomNavBadges();
 }
 
 /* ===================================================
@@ -620,7 +673,9 @@ function renderMyTickets() {
   const session = typeof getSession === 'function' ? getSession() : null;
 
   if (!session) {
-    box.innerHTML = `<p class="text-muted small mb-0">Sign in to see your past support messages here.</p>`;
+    box.innerHTML = `
+      <p class="text-muted small mb-2">Sign in to see your past support messages here.</p>
+      <a href="#" onclick="navigateTo('customer-login'); return false;" class="btn btn-primary btn-sm w-100">Sign in to view messages</a>`;
     return;
   }
 
@@ -690,9 +745,9 @@ function initCustomerNotificationsPage() {
     return;
   }
   box.innerHTML = mine.map(n => `
-    <div class="d-flex align-items-start gap-2 py-2 border-bottom">
-      <i class="bi ${n.icon || 'bi-bell'} text-primary"></i>
-      <div><div class="small">${escapeHTML(n.text)}</div><div class="text-muted small">${new Date(n.date).toLocaleString()}</div></div>
+    <div class="d-flex align-items-start gap-3 py-3 border-bottom">
+      <div class="kc-notif-icon-box" style="background:${n.iconBg || '#DBEAFE'};color:${n.iconColor || '#2563EB'}"><i class="bi ${n.icon || 'bi-bell'}"></i></div>
+      <div><div class="small fw-semibold">${escapeHTML(n.text)}</div><div class="text-muted small">${new Date(n.date).toLocaleString()}</div></div>
     </div>
   `).join('');
 
