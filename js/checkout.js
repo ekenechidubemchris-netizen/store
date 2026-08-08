@@ -5,6 +5,16 @@
    =================================================== */
 
 function initCheckoutPage() {
+  // Require an account before completing checkout. Cart is preserved (it's just
+  // sitting in localStorage), so nothing is lost — they just need to sign in or
+  // register first, then get sent straight back here.
+  if (typeof getSession === 'function' && !getSession()) {
+    showToastSafe('Please sign in or create an account to complete your order', 'warning');
+    sessionStorage.setItem('kc_redirect_after_login', 'checkout');
+    navigateTo('customer-login');
+    return;
+  }
+
   // Reset visibility state from any previous order — without this, completing one
   // order permanently hides the checkout form on every future visit to this page.
   document.getElementById('checkoutFormWrap')?.classList.remove('d-none');
@@ -292,4 +302,4 @@ function showConfirmation(order) {
   `;
 }
 
-document.addEventListener('DOMContentLoaded', initCheckoutPage);
+
