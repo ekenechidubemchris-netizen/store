@@ -12,14 +12,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
 <!-- All KeneCart CSS lives in this single stylesheet (customer site + worker dashboard theme) -->
-<link rel="stylesheet" href="css/style.css?v=20260725-6">
+<link rel="stylesheet" href="css/style.css?v=20260727-2">
 </head>
 <body>
 <script>
   // Defense-in-depth: clear any stale URL hash (e.g. "#cart") the instant the page
-  // starts loading, before ANY other script runs. This is intentionally duplicated
-  // here (separate from the same logic in js/app.js) so the site still opens on
-  // Home even if js/app.js somehow ends up as an older cached file without this fix.
+  // starts loading, before ANY other script runs.
   try {
     if (window.location.hash) {
       history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -134,7 +132,7 @@
       </div>
     </div>
 
-    <div class="row g-2 kc-service-features-top mb-4">
+    <div class="row g-2 kc-service-features-top mb-4 kc-fade-in">
       <div class="col-3 text-center">
         <a href="#" onclick="navigateTo('payment-methods'); return false;" class="kc-service-link">
           <div class="kc-service-icon" style="background:#DBEAFE;color:#2563EB"><i class="bi bi-shield-check"></i></div>
@@ -165,7 +163,7 @@
       </div>
     </div>
 
-    <section class="mb-4">
+    <section class="mb-4 kc-fade-in">
       <div class="d-flex justify-content-between align-items-center">
         <h2 class="kc-section-title mb-0">Trending Picks</h2>
         <a href="#" onclick="navigateTo('products'); return false;" class="kc-see-all">See All <i class="bi bi-arrow-right"></i></a>
@@ -173,7 +171,7 @@
       <div class="row row-cols-4 row-cols-md-6 g-2" id="sidebarProducts"></div>
     </section>
 
-    <section class="mb-4">
+    <section class="mb-4 kc-fade-in">
       <h2 class="kc-section-title">Featured Collections</h2>
       <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3">
         <div class="col">
@@ -219,7 +217,7 @@
       </div>
     </section>
 
-    <section class="mb-4">
+    <section class="mb-4 kc-fade-in">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <h2 class="kc-section-title mb-0"><i class="bi bi-lightning-charge-fill text-warning"></i> Flash Deals</h2>
         <a href="#" onclick="navigateTo('products',{deal:'flash'}); return false;" class="kc-see-all">See All <i class="bi bi-arrow-right"></i></a>
@@ -962,14 +960,14 @@
       <a class="nav-link" id="navFinance" onclick="showDashSection('finance')"><i class="bi bi-cash-coin"></i> Finance</a>
       <a class="nav-link" id="navMarketing" onclick="showDashSection('marketing')"><i class="bi bi-megaphone"></i> Marketing</a>
 
-      <div class="dash-nav-heading">Account</div>
+      <div class="dash-nav-heading">Account (v2026.07.27-2)</div>
       <a class="nav-link" id="navMessages" onclick="showDashSection('messages')"><i class="bi bi-chat-dots"></i> Messages</a>
       <a class="nav-link" id="navNotifications" onclick="showDashSection('notifications')"><i class="bi bi-bell"></i> Notifications</a>
       <a class="nav-link" id="navSettings" onclick="showDashSection('settings')"><i class="bi bi-gear"></i> Settings</a>
       <a class="nav-link" id="navProfile" onclick="showDashSection('profile')"><i class="bi bi-person-circle"></i> Profile</a>
       <a class="nav-link text-danger" onclick="workerLogout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </nav>
-    <div class="p-2 text-center" style="font-size:.6rem;color:#64748B;opacity:.6">Build v2026.07.25-6</div>
+    <div class="p-2 text-center" style="font-size:.6rem;color:#64748B;opacity:.6">Build v2026.07.27-2</div>
   </div>
 
   <div class="dash-topbar d-flex align-items-center justify-content-between">
@@ -990,42 +988,42 @@
 
 <!-- ===== Global Footer (single instance) ===== -->
 <!-- ===== Newsletter + Service Features (customer chrome) ===== -->
-<div class="container" id="globalPreFooter">
+<div class="container kc-fade-in" id="globalPreFooter">
   <div class="kc-newsletter-box d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
     <div class="d-flex align-items-center gap-3">
       <div class="kc-newsletter-icon"><i class="bi bi-envelope-fill"></i></div>
       <div>
-        <h3 class="fs-5 fw-bold mb-1">Stay Updated!</h3>
-        <p class="small text-muted mb-0">Subscribe to our newsletter and get the latest deals, offers and updates.</p>
+        <h3 class="fs-5 fw-bold mb-1 kc-newsletter-title">Stay Updated!</h3>
+        <p class="small text-muted mb-0 kc-newsletter-desc">Subscribe to our newsletter and get the latest deals, offers and updates.</p>
       </div>
     </div>
-    <form class="d-flex gap-2 flex-wrap" id="newsletterForm" onsubmit="event.preventDefault(); showToast('Subscribed! Watch your inbox for deals.', 'success'); this.reset();">
+    <form class="d-flex gap-2 flex-wrap kc-newsletter-form" id="newsletterForm" onsubmit="event.preventDefault(); showToast('Subscribed! Watch your inbox for deals.', 'success'); this.reset();">
       <input type="email" class="form-control" placeholder="Enter your email address" required style="min-width:220px">
       <button type="submit" class="btn btn-primary px-4">Subscribe</button>
     </form>
   </div>
   <p class="text-center text-muted mb-3" style="font-size:.72rem"><i class="bi bi-lock-fill"></i> We respect your privacy. Unsubscribe anytime.</p>
 
-  <div class="row g-3 kc-service-features mb-4">
-    <div class="col-6 col-md-3 text-center">
+  <div class="row g-2 kc-service-features mb-4">
+    <div class="col-3 text-center">
       <div class="kc-service-icon" style="background:#DBEAFE;color:#2563EB"><i class="bi bi-shield-check"></i></div>
-      <div class="fw-semibold small mt-2">Secure Payments</div>
-      <div class="text-muted" style="font-size:.72rem">100% secure payment with trusted methods</div>
+      <div class="fw-semibold small mt-2 kc-service-title">Secure Payments</div>
+      <div class="text-muted kc-service-sub2">100% secure payment with trusted methods</div>
     </div>
-    <div class="col-6 col-md-3 text-center">
+    <div class="col-3 text-center">
       <div class="kc-service-icon" style="background:#D1FAE5;color:#059669"><i class="bi bi-truck"></i></div>
-      <div class="fw-semibold small mt-2">Fast Delivery</div>
-      <div class="text-muted" style="font-size:.72rem">Get your order delivered fast and on time</div>
+      <div class="fw-semibold small mt-2 kc-service-title">Fast Delivery</div>
+      <div class="text-muted kc-service-sub2">Get your order delivered fast and on time</div>
     </div>
-    <div class="col-6 col-md-3 text-center">
+    <div class="col-3 text-center">
       <div class="kc-service-icon" style="background:#FFEDD5;color:#EA580C"><i class="bi bi-arrow-counterclockwise"></i></div>
-      <div class="fw-semibold small mt-2">Easy Returns</div>
-      <div class="text-muted" style="font-size:.72rem">30-day hassle-free returns and refunds</div>
+      <div class="fw-semibold small mt-2 kc-service-title">Easy Returns</div>
+      <div class="text-muted kc-service-sub2">30-day hassle-free returns and refunds</div>
     </div>
-    <div class="col-6 col-md-3 text-center">
+    <div class="col-3 text-center">
       <div class="kc-service-icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-headset"></i></div>
-      <div class="fw-semibold small mt-2">24/7 Support</div>
-      <div class="text-muted" style="font-size:.72rem">We're here to help you anytime, anywhere</div>
+      <div class="fw-semibold small mt-2 kc-service-title">24/7 Support</div>
+      <div class="text-muted kc-service-sub2">We're here to help you anytime, anywhere</div>
     </div>
   </div>
 </div>
@@ -1033,10 +1031,9 @@
 <footer class="kc-footer-dark pt-5 pb-4 mt-2" id="globalFooter">
   <div class="container">
     <div class="row g-4 mb-4">
-      <div class="col-12 col-md-4 col-lg-3">
+      <div class="col-12 col-lg-3">
         <div class="d-flex align-items-center gap-2 mb-1">
-          <img src="images/logo.svg" alt="KeneCart" style="height:26px;filter:brightness(0) invert(1)">
-          <span class="fw-bold fs-5 text-white">KeneCart</span>
+          <img src="images/logo.svg" alt="KeneCart" style="height:38px;filter:brightness(0) invert(1)">
         </div>
         <div class="text-white-50" style="font-size:.65rem;letter-spacing:.05em">E-COMMERCE &amp; MORE</div>
         <p class="text-white-50 small mt-3">Your one-stop shop for the best products at the best prices. Quality you can trust, service you can rely on.</p>
@@ -1046,7 +1043,7 @@
           <li class="mb-2"><i class="bi bi-shield-lock me-2"></i>100% Secure Shopping</li>
         </ul>
       </div>
-      <div class="col-6 col-md-4 col-lg-3">
+      <div class="col-4 col-lg-3">
         <h6 class="kc-footer-heading">Site Map</h6>
         <ul class="list-unstyled kc-footer-links">
           <li><a href="#" onclick="navigateTo('home'); return false;">Home <i class="bi bi-chevron-right"></i></a></li>
@@ -1056,7 +1053,7 @@
           <li><a href="#" onclick="navigateTo('about'); return false;">About Us <i class="bi bi-chevron-right"></i></a></li>
         </ul>
       </div>
-      <div class="col-6 col-md-4 col-lg-3">
+      <div class="col-4 col-lg-3">
         <h6 class="kc-footer-heading">Customer Service</h6>
         <ul class="list-unstyled kc-footer-links">
           <li><a href="#" onclick="navigateTo('track-order'); return false;">Track an Order <i class="bi bi-chevron-right"></i></a></li>
@@ -1065,7 +1062,7 @@
           <li><a href="#" onclick="navigateTo('help'); return false;">Help Center <i class="bi bi-chevron-right"></i></a></li>
         </ul>
       </div>
-      <div class="col-6 col-md-4 col-lg-3">
+      <div class="col-4 col-lg-3">
         <h6 class="kc-footer-heading">My Account</h6>
         <ul class="list-unstyled kc-footer-links">
           <li><a href="#" onclick="navigateTo('customer-login'); return false;">My Account <i class="bi bi-chevron-right"></i></a></li>
@@ -1105,7 +1102,7 @@
         <a href="#" onclick="navigateTo('shipping'); return false;" class="kc-footer-bottom-link">Terms of Service</a>
       </span>
     </div>
-    <div class="text-center text-white-50 mt-3" style="font-size:.62rem;opacity:.6">·Build v2026.07.25-6·.</div>
+    <div class="text-center text-white-50 mt-3" style="font-size:.62rem;opacity:.6"> ·.Build v2026.07.27-2 ·.</div>
   </div>
 </footer>
 
@@ -1124,12 +1121,12 @@
 <!-- Bootstrap + App scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
-<script src="js/auth.js?v=20260725-6"></script>
-<script src="js/worker.js?v=20260725-6"></script>
-<script src="js/products.js?v=20260725-6"></script>
-<script src="js/cart.js?v=20260725-6"></script>
-<script src="js/checkout.js?v=20260725-6"></script>
-<script src="js/stripe-integration.js?v=20260725-6"></script>
-<script src="js/app.js?v=20260725-6"></script>
+<script src="js/auth.js?v=20260727-2"></script>
+<script src="js/worker.js?v=20260727-2"></script>
+<script src="js/products.js?v=20260727-2"></script>
+<script src="js/cart.js?v=20260727-2"></script>
+<script src="js/checkout.js?v=20260727-2"></script>
+<script src="js/stripe-integration.js?v=20260727-2"></script>
+<script src="js/app.js?v=20260727-2"></script>
 </body>
 </html>
