@@ -141,6 +141,7 @@ async function loadProducts() {
   renderSidebarProducts();
   renderFlashDeals();
   startFlashTimers();
+  initFadeInSections();
 }
 
 /* ---------- Home page: sidebar "Sports" grid ---------- */
@@ -159,6 +160,22 @@ function renderFlashDeals() {
   container.innerHTML = items.map(p => productCardHTML(p, true)).join('');
 }
 let KC_FLASH_TIMER_IDS = [];
+let kcFadeObserver = null;
+function initFadeInSections() {
+  if (kcFadeObserver) kcFadeObserver.disconnect();
+  const targets = document.querySelectorAll('.kc-fade-in');
+  if (!targets.length) return;
+  kcFadeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('kc-visible');
+        kcFadeObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  targets.forEach(el => kcFadeObserver.observe(el));
+}
+
 function startFlashTimers() {
   // Clear any timers from a previous visit to this page — without this, navigating
   // to Home/Products repeatedly stacks up duplicate intervals forever, which is
@@ -396,7 +413,6 @@ function renderProductDetail(p) {
       <div class="col-12 col-md-6">
         <div class="text-muted small text-uppercase">${p.brand} · ${p.category}</div>
         <h1 class="fs-3 fw-bold">${p.name}</h1>
-        <div class="kc-stars mb-2">${renderStars(p.rating)} <span class="text-muted small">(${p.reviews} reviews)</span></div>
         <div class="d-flex align-items-baseline gap-2 mb-3">
           <span class="fs-3 fw-bold">$${p.price.toFixed(2)}</span>
           ${p.oldPrice ? `<span class="text-muted text-decoration-line-through">$${p.oldPrice.toFixed(2)}</span>` : ''}
@@ -408,6 +424,7 @@ function renderProductDetail(p) {
           <button class="btn btn-outline-secondary ${KC.compare.includes(p.id) ? 'active' : ''}" onclick="toggleCompare('${p.id}', this)"><i class="bi bi-arrow-left-right"></i></button>
         </div>
         <p class="small text-muted">Free returns within 30 days. Secure checkout with card, PayPal, Apple Pay, Google Pay, or Cash on Delivery.</p>
+        <div class="kc-stars mb-2">${renderStars(p.rating)} <span class="text-muted small">(${p.reviews} reviews)</span></div>
       </div>
     </div>
     <hr class="my-4">
@@ -777,7 +794,7 @@ function initSearch() {
     ).slice(0, 6);
 
     box.innerHTML = matches.length ? matches.map(p => `
-        <div class="suggestion-item" onclick="viewProduct('${p.id}')">
+        <div class="suggestion-item" onclick="selectSearchSuggestion('${p.id}')">
           <img src="${p.image}" alt="" width="34" height="34" style="object-fit:cover;border-radius:6px">
           <div>
             <div style="font-size:.82rem;font-weight:600">${p.name}</div>
@@ -799,6 +816,13 @@ function initSearch() {
   document.addEventListener('click', (e) => {
     if (!box.contains(e.target) && e.target !== input) box.classList.remove('show');
   });
+}
+function selectSearchSuggestion(productId) {
+  const box = document.getElementById('searchSuggestions');
+  const input = document.getElementById('searchInput');
+  if (box) { box.classList.remove('show'); box.innerHTML = ''; }
+  if (input) input.value = '';
+  viewProduct(productId);
 }
 function escapeHTML(str) {
   return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
@@ -833,6 +857,24 @@ function initPaymentsPopover() {
   const closeBtn = document.getElementById('closePaymentsPopover');
   if (!pop || !closeBtn) return;
   if (sessionStorage.getItem('kc_hide_payments_popover') === '1') { pop.remove(); return; }
+
+  // Hide until the user scrolls past the initial viewport — showing it immediately
+  // means it can overlap the Trending Picks row, which sits right after the hero.
+  // Uses visibility/opacity (not display) because Bootstrap's d-xl-block utility
+  // class sets display with !important, which would silently override a plain
+  // inline display:none the instant the xl breakpoint applies.
+  pop.style.visibility = 'hidden';
+  pop.style.opacity = '0';
+  const updatePopoverVisibility = () => {
+    const pastHero = window.scrollY > 500;
+    const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 250);
+    const shouldShow = pastHero && !nearBottom;
+    pop.style.visibility = shouldShow ? '' : 'hidden';
+    pop.style.opacity = shouldShow ? '' : '0';
+  };
+  updatePopoverVisibility();
+  window.addEventListener('scroll', updatePopoverVisibility, { passive: true });
+
   closeBtn.addEventListener('click', () => {
     pop.remove();
     sessionStorage.setItem('kc_hide_payments_popover', '1');
